@@ -1,4 +1,4 @@
 # Goals
 
-- [] Successfully load a ROM.
-- [] Render "Pong".
+- [ ] Successfully load a ROM.
+- [ ] Render "Pong".
