@@ -32,11 +32,24 @@ impl Bus {
             memory: [0; RAM_SIZE as usize],
         };
 
-        for (i, byte) in FONTSET.iter().enumerate() {
-            bus.memory[FONT_BASE as usize + i] = *byte;
+        for (i, &byte) in FONTSET.iter().enumerate() {
+            bus.memory[FONT_BASE as usize + i] = byte;
         }
 
         bus
+    }
+
+    pub fn load_rom(&mut self, rom: &[u8]) -> Result<(), String> {
+        let available_space = RAM_SIZE - ROM_START;
+        if rom.len() > available_space as usize {
+            return Err("The ROM is too big".to_string());
+        }
+
+        for (i, &byte) in rom.iter().enumerate() {
+            self.memory[ROM_START as usize + i] = byte;
+        }
+
+        Ok(())
     }
 }
 
@@ -60,5 +73,29 @@ mod tests {
         // The last byte (for 'F') should be 0x80
         let last_idx = FONT_BASE as usize + FONTSET.len() - 1;
         assert_eq!(bus.memory[last_idx], 0x80);
+    }
+
+    #[test]
+    fn test_rom_is_too_big() {
+        let mut bus = Bus::new();
+
+        // The ROM size must not exceed available space (3584 bytes)
+        assert_eq!(
+            bus.load_rom(&[0; 4000]),
+            Err("The ROM is too big".to_string())
+        );
+    }
+
+    #[test]
+    fn test_rom_loads_correctly() {
+        let mut bus = Bus::new();
+        let dummy_rom = [0x11, 0x12, 0x13, 0x14, 0x15];
+
+        bus.load_rom(&dummy_rom).unwrap();
+        // The ROM should be loaded into the memory and all the bytes should match
+        assert_eq!(
+            &bus.memory[ROM_START as usize..ROM_START as usize + dummy_rom.len()],
+            dummy_rom
+        );
     }
 }
