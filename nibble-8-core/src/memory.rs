@@ -1,6 +1,8 @@
 pub const RAM_SIZE: u16 = 4096;
 pub const FONT_BASE: u16 = 0x050;
 pub const ROM_START: u16 = 0x200;
+pub const SCREEN_WIDTH: usize = 64;
+pub const SCREEN_HEIGHT: usize = 32;
 
 // 5x16
 pub const FONTSET: [u8; 80] = [
@@ -22,14 +24,22 @@ pub const FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
+struct Display {
+    display_buffer: [u8; SCREEN_WIDTH * SCREEN_HEIGHT],
+}
+
 pub struct Bus {
     pub memory: [u8; RAM_SIZE as usize],
+    display: Display,
 }
 
 impl Bus {
     pub fn new() -> Self {
         let mut bus = Self {
             memory: [0; RAM_SIZE as usize],
+            display: Display {
+                display_buffer: [0; SCREEN_WIDTH * SCREEN_HEIGHT],
+            },
         };
 
         for (i, &byte) in FONTSET.iter().enumerate() {
@@ -45,11 +55,13 @@ impl Bus {
             return Err("The ROM is too big".to_string());
         }
 
-        for (i, &byte) in rom.iter().enumerate() {
-            self.memory[ROM_START as usize + i] = byte;
-        }
+        self.memory[ROM_START as usize..ROM_START as usize + rom.len()].copy_from_slice(rom);
 
         Ok(())
+    }
+
+    pub fn write_pixel(x: u8, y: u8, value: u8) -> bool {
+        true
     }
 }
 
@@ -98,4 +110,7 @@ mod tests {
             dummy_rom
         );
     }
+
+    #[test]
+    fn test_pixel_write_correctly() {}
 }

@@ -1,3 +1,5 @@
+use crate::instruction::Instruction;
+
 #[derive(Debug, PartialEq)]
 struct OpcodeComponents {
     op: u8,
@@ -21,8 +23,35 @@ impl From<u16> for OpcodeComponents {
     }
 }
 
+pub fn decode(opcode: u16) -> Option<Instruction> {
+    let opcode_components = OpcodeComponents::from(opcode);
+    match opcode_components.op {
+        0x0 => match opcode_components.kk {
+            0xE0 => Some(Instruction::Cls),
+            _ => None,
+        },
+        0x1 => Some(Instruction::Jump(opcode_components.nnn)),
+        0x6 => Some(Instruction::SetRegVX(
+            opcode_components.x,
+            opcode_components.kk,
+        )),
+        0x7 => Some(Instruction::AddValueToVX(
+            opcode_components.x,
+            opcode_components.kk,
+        )),
+        0xA => Some(Instruction::SetIndex(opcode_components.nnn)),
+        0xD => Some(Instruction::Draw(
+            opcode_components.x,
+            opcode_components.y,
+            opcode_components.n,
+        )),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -40,5 +69,13 @@ mod tests {
         };
 
         assert_eq!(opcode_components, expected);
+    }
+
+    #[test]
+    fn test_decode_opcode() {
+        let opcode = 0xD123;
+
+        let decoded = decode(opcode);
+        assert_eq!(decoded, Some(Instruction::Draw(0x1, 0x2, 0x3)));
     }
 }

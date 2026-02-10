@@ -1,4 +1,4 @@
-use crate::{Bus, memory::ROM_START};
+use crate::{Bus, decoder::decode, instruction::Instruction, memory::ROM_START};
 
 pub struct Cpu {
     v_registers: [u8; 16],
@@ -19,14 +19,41 @@ impl Cpu {
         }
     }
 
+    fn clear_screen(&mut self) {}
+
+    fn draw_sprite(&mut self, x: u8, y: u8, n: u8) {}
+
     fn fetch(&mut self, bus: &Bus) -> u16 {
         let byte1: u16 = (bus.memory[self.pc as usize] as u16) << 8;
         let byte2: u16 = bus.memory[self.pc as usize + 1] as u16;
 
         // BUG what if it goes past RAM_SIZE?
+        // TODO: Move this out of here to somewhere else, maybe main loop or maybe not? Idk bro.
         self.pc += 2;
 
         byte1 | byte2
+    }
+
+    fn execute(&mut self, opcode: u16) -> bool {
+        let mut should_redraw = false;
+        let instruction = decode(opcode).expect("Invalid Opcode");
+
+        match instruction {
+            Instruction::Cls => {
+                self.clear_screen();
+                should_redraw = true;
+            }
+            Instruction::Jump(nnn) => self.pc = nnn,
+            Instruction::SetRegVX(x, kk) => self.v_registers[x as usize] = kk,
+            Instruction::AddValueToVX(x, kk) => self.v_registers[x as usize] += kk,
+            Instruction::SetIndex(nnn) => self.i = nnn,
+            Instruction::Draw(x, y, n) => {
+                self.draw_sprite(x, y, n);
+                should_redraw = true;
+            }
+        }
+
+        should_redraw
     }
 }
 
@@ -55,6 +82,24 @@ mod tests {
         // pc should move forward upon reading bytes from memory (2 bytes at a time)
         assert_eq!(cpu.pc, 0x202);
     }
+
+    #[test]
+    fn test_op_cls() {}
+
+    #[test]
+    fn test_op_6xkk_set_vx() {}
+
+    #[test]
+    fn test_op_1nnn_jump() {}
+
+    #[test]
+    fn test_op_7xkk_add_to_vx() {}
+
+    #[test]
+    fn test_op_annn_set_index() {}
+
+    #[test]
+    fn test_op_dxyn_draw() {}
 
     // PC should never go past RAM_SIZE or should wrap if it does?
 }
