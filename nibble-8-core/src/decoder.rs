@@ -1,5 +1,4 @@
-enum Instruction {
-    Jump(u16),
+#[cfg(test)]
+mod tests {
+    use super::*;
 }
-
-impl Instruction {}
