@@ -20,7 +20,12 @@ impl Cpu {
     }
 
     fn fetch(&mut self, bus: &Bus) -> u16 {
-        0
+        let byte1: u16 = (bus.memory[self.pc as usize] as u16) << 8;
+        let byte2: u16 = bus.memory[self.pc as usize + 1] as u16;
+
+        self.pc += 2;
+
+        byte1 | byte2
     }
 }
 
@@ -44,7 +49,7 @@ mod tests {
         bus.load_rom(&dummy_rom).unwrap();
 
         let opcode = cpu.fetch(&bus);
-        // bytes should should be successfully fetched combined into a u16 opcode (Big Endian)
+        // bytes should should be successfully fetched and combined into a u16 opcode (Big Endian)
         assert_eq!(opcode, 0x1234);
         // pc should move forward upon reading bytes from memory (2 bytes at a time)
         assert_eq!(cpu.pc, 0x202);
