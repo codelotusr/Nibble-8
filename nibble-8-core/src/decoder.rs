@@ -27,7 +27,8 @@ pub fn decode(opcode: u16) -> Option<Instruction> {
     let opcode_components = OpcodeComponents::from(opcode);
     match opcode_components.op {
         0x0 => match opcode_components.kk {
-            0xE0 => Some(Instruction::Cls),
+            0x00E0 => Some(Instruction::Cls),
+            0x00EE => Some(Instruction::Ret),
             _ => None,
         },
         0x1 => Some(Instruction::Jump(opcode_components.nnn)),

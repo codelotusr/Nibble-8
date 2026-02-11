@@ -81,6 +81,13 @@ impl Cpu {
                 self.clear_screen(bus);
                 should_redraw = true;
             }
+            Instruction::Ret => {
+                if self.sp == 0 {
+                    panic!("The SP cannot be negative!");
+                }
+                self.pc = self.stack[self.sp as usize];
+                self.sp -= 1;
+            }
             Instruction::Jump(nnn) => self.pc = nnn,
             Instruction::Call(nnn) => {
                 self.sp += 1;
@@ -186,6 +193,22 @@ mod tests {
         assert_eq!(cpu.sp, 1);
         assert_eq!(cpu.stack[cpu.sp as usize], old_pc);
         assert_eq!(cpu.pc, 0x432);
+    }
+
+    #[test]
+    fn test_op_3xkk_skip_eq() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x6] = 0x78;
+        let old_pc = cpu.pc;
+
+        cpu.execute(0x3612, &mut bus);
+        assert_ne!(cpu.v_registers[0x6], 0x12);
+        assert_eq!(cpu.pc, old_pc);
+
+        cpu.execute(0x3678, &mut bus);
+        assert_eq!(cpu.v_registers[0x6], 0x78);
+        assert_eq!(cpu.pc, old_pc + 2);
     }
 
     #[test]
