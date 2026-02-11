@@ -155,6 +155,20 @@ mod tests {
     }
 
     #[test]
+    fn test_op_ret() {
+        let (mut cpu, mut bus) = setup();
+        cpu.pc = 0x532;
+        cpu.sp = 3;
+        cpu.stack[cpu.sp as usize] = 0x123;
+
+        let old_sp = cpu.sp;
+
+        cpu.execute(0x00EE, &mut bus);
+        assert_eq!(cpu.pc, 0x123);
+        assert_eq!(cpu.sp, old_sp - 1);
+    }
+
+    #[test]
     fn test_op_1nnn_jump() {
         let (mut cpu, mut bus) = setup();
 
