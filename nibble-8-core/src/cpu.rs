@@ -128,6 +128,17 @@ impl Cpu {
                 self.v_registers[x as usize] = result as u8;
                 self.v_registers[0xF] = carry;
             }
+            Instruction::SubReg(x, y) => {
+                let result =
+                    self.v_registers[x as usize].wrapping_sub(self.v_registers[y as usize]);
+                let carry = if self.v_registers[x as usize] > self.v_registers[y as usize] {
+                    1
+                } else {
+                    0
+                };
+                self.v_registers[x as usize] = result;
+                self.v_registers[0xF] = carry;
+            }
             Instruction::LoadI(nnn) => self.i = nnn,
             Instruction::Draw(x, y, n) => {
                 self.draw_sprite(x, y, n, bus);
@@ -384,7 +395,7 @@ mod tests {
         // carry flag should become 0, since VX < VY
         assert_eq!(cpu.v_registers[0xF], 0);
         // underflow should be handled correctly
-        assert_eq!(cpu.v_registers[0x4], 0xCF);
+        assert_eq!(cpu.v_registers[0x4], 0xD0);
     }
 
     #[test]

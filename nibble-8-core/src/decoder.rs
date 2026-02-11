@@ -62,6 +62,10 @@ pub fn decode(opcode: u16) -> Option<Instruction> {
                 opcode_components.x,
                 opcode_components.y,
             )),
+            0x5 => Some(Instruction::SubReg(
+                opcode_components.x,
+                opcode_components.y,
+            )),
             _ => None,
         },
         0xA => Some(Instruction::LoadI(opcode_components.nnn)),
