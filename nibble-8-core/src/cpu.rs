@@ -121,6 +121,13 @@ impl Cpu {
 
             Instruction::And(x, y) => self.v_registers[x as usize] &= self.v_registers[y as usize],
             Instruction::Xor(x, y) => self.v_registers[x as usize] ^= self.v_registers[y as usize],
+            Instruction::AddReg(x, y) => {
+                let result: u16 =
+                    self.v_registers[x as usize] as u16 + self.v_registers[y as usize] as u16;
+                let carry = if result > 0xFF { 1 } else { 0 };
+                self.v_registers[x as usize] = result as u8;
+                self.v_registers[0xF] = carry;
+            }
             Instruction::LoadI(nnn) => self.i = nnn,
             Instruction::Draw(x, y, n) => {
                 self.draw_sprite(x, y, n, bus);
