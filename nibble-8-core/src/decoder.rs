@@ -50,6 +50,13 @@ pub fn decode(opcode: u16) -> Option<Instruction> {
         },
         0x6 => Some(Instruction::Load(opcode_components.x, opcode_components.kk)),
         0x7 => Some(Instruction::Add(opcode_components.x, opcode_components.kk)),
+        0x8 => match opcode_components.n {
+            0x0 => Some(Instruction::LoadReg(
+                opcode_components.x,
+                opcode_components.y,
+            )),
+            _ => None,
+        },
         0xA => Some(Instruction::LoadI(opcode_components.nnn)),
         0xD => Some(Instruction::Draw(
             opcode_components.x,

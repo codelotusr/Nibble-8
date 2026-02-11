@@ -113,6 +113,9 @@ impl Cpu {
             Instruction::Add(x, kk) => {
                 self.v_registers[x as usize] = self.v_registers[x as usize].wrapping_add(kk)
             }
+            Instruction::LoadReg(x, y) => {
+                self.v_registers[x as usize] = self.v_registers[y as usize]
+            }
             Instruction::LoadI(nnn) => self.i = nnn,
             Instruction::Draw(x, y, n) => {
                 self.draw_sprite(x, y, n, bus);
