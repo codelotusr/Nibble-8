@@ -460,6 +460,24 @@ mod tests {
     }
 
     #[test]
+    fn test_op_8xye_shl() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x4] = 0xA9;
+        // carry flag should be 0 at start
+        assert_eq!(cpu.v_registers[0xF], 0);
+        cpu.execute(0x847E, &mut bus);
+        // carry flag should be set to 1, since msb is 1
+        assert_eq!(cpu.v_registers[0xF], 1);
+        assert_eq!(cpu.v_registers[0x4], 0x52);
+
+        cpu.execute(0x847E, &mut bus);
+        // carry flag should be set to 0, since msb is 0
+        assert_eq!(cpu.v_registers[0xF], 0);
+        assert_eq!(cpu.v_registers[0x4], 0xA4);
+    }
+
+    #[test]
     fn test_op_annn_load_i() {
         let (mut cpu, mut bus) = setup();
 
