@@ -150,14 +150,6 @@ mod tests {
     }
 
     #[test]
-    fn test_op_6xkk_set_vx() {
-        let (mut cpu, mut bus) = setup();
-
-        cpu.execute(0x6350, &mut bus);
-        assert_eq!(cpu.v_registers[3], 0x50);
-    }
-
-    #[test]
     fn test_op_1nnn_jump() {
         let (mut cpu, mut bus) = setup();
 
@@ -166,7 +158,27 @@ mod tests {
     }
 
     #[test]
-    fn test_op_7xkk_add_to_vx() {
+    fn test_op_2nnn_call() {
+        let (mut cpu, mut bus) = setup();
+
+        let old_pc = cpu.pc;
+
+        cpu.execute(0x2432, &mut bus);
+        assert_eq!(cpu.sp, 1);
+        assert_eq!(cpu.stack[0], old_pc);
+        assert_eq!(cpu.pc, 0x432);
+    }
+
+    #[test]
+    fn test_op_6xkk_load() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.execute(0x6350, &mut bus);
+        assert_eq!(cpu.v_registers[3], 0x50);
+    }
+
+    #[test]
+    fn test_op_7xkk_add() {
         let (mut cpu, mut bus) = setup();
         cpu.v_registers[1] = 0xFE; // 254
 
@@ -178,7 +190,7 @@ mod tests {
     }
 
     #[test]
-    fn test_op_annn_set_index() {
+    fn test_op_annn_load_i() {
         let (mut cpu, mut bus) = setup();
 
         cpu.execute(0xA123, &mut bus);
