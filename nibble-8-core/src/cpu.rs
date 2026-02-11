@@ -217,6 +217,22 @@ mod tests {
     }
 
     #[test]
+    fn test_op_4xkk_skip_not_eq() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x6] = 0x78;
+        let old_pc = cpu.pc;
+
+        cpu.execute(0x3678, &mut bus);
+        assert_eq!(cpu.v_registers[0x6], 0x78);
+        assert_eq!(cpu.pc, old_pc);
+
+        cpu.execute(0x3612, &mut bus);
+        assert_ne!(cpu.v_registers[0x6], 0x12);
+        assert_eq!(cpu.pc, old_pc + 2);
+    }
+
+    #[test]
     fn test_op_6xkk_load() {
         let (mut cpu, mut bus) = setup();
 
