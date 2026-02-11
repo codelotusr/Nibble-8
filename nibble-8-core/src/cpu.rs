@@ -333,6 +333,33 @@ mod tests {
     }
 
     #[test]
+    fn test_op_8xy4_add_reg() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x7] = 0x42;
+        cpu.v_registers[0x4] = 0x54;
+
+        // carry flag should be 0 at start
+        assert_eq!(cpu.v_registers[0xF], 0);
+        cpu.execute(0x8474, &mut bus);
+        // should still be 0, since result < 255
+        assert_eq!(cpu.v_registers[0xF], 0);
+        assert_eq!(cpu.v_registers[0x4], 0x96);
+
+        cpu.v_registers[0x7] = 0x96;
+        cpu.execute(0x8474, &mut bus);
+        // carry flag should be set to 1, since result > 255
+        assert_eq!(cpu.v_registers[0xF], 1);
+        assert_eq!(cpu.v_registers[0x4], 0x2C);
+
+        cpu.v_registers[0x7] = 0x01;
+        cpu.v_registers[0x4] = 0x01;
+        cpu.execute(0x8474, &mut bus);
+        // carry flag should be set back to 0, since result < 255
+        assert_eq!(cpu.v_registers[0xF], 0);
+    }
+
+    #[test]
     fn test_op_annn_load_i() {
         let (mut cpu, mut bus) = setup();
 
