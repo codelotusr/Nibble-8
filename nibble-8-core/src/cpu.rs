@@ -367,6 +367,27 @@ mod tests {
     }
 
     #[test]
+    fn test_op_8xy5_sub_reg() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x4] = 0x54;
+        cpu.v_registers[0x7] = 0x42;
+
+        // carry flag should be 0 at start
+        assert_eq!(cpu.v_registers[0xF], 0);
+        cpu.execute(0x8475, &mut bus);
+        // should become 1, since VX > VY
+        assert_eq!(cpu.v_registers[0xF], 1);
+        assert_eq!(cpu.v_registers[0x4], 0x12);
+
+        cpu.execute(0x8475, &mut bus);
+        // carry flag should become 0, since VX < VY
+        assert_eq!(cpu.v_registers[0xF], 0);
+        // underflow should be handled correctly
+        assert_eq!(cpu.v_registers[0x4], 0xCF);
+    }
+
+    #[test]
     fn test_op_annn_load_i() {
         let (mut cpu, mut bus) = setup();
 
