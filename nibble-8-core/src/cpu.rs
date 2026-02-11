@@ -517,6 +517,16 @@ mod tests {
     }
 
     #[test]
+    fn test_op_bnnn_jump_offset() {
+        let (mut cpu, mut bus) = setup();
+
+        cpu.v_registers[0x0] = 0x32;
+
+        cpu.execute(0xB234, &mut bus);
+        assert_eq!(cpu.pc, 0x266);
+    }
+
+    #[test]
     fn test_op_dxyn_draw() {
         let (mut cpu, mut bus) = setup();
         setup_with_sprite(&mut bus, &mut cpu, 0x400, 0xF0);
