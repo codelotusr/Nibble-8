@@ -209,6 +209,11 @@ impl Cpu {
                 self.draw_sprite(x, y, n, bus);
                 should_redraw = true;
             }
+            Instruction::SkipIfPressed(x) => {
+                if bus.is_key_pressed(x) {
+                    self.pc += 2;
+                }
+            }
             _ => (),
         }
 
@@ -610,7 +615,9 @@ mod tests {
 
         cpu.execute(0xE09E, &mut bus);
         assert_eq!(cpu.pc, old_pc);
-        bus.set_key(0, true);
+
+        bus.set_key(0x0, true);
+        cpu.execute(0xE09E, &mut bus);
         assert_eq!(cpu.pc, old_pc + 2);
     }
 }
