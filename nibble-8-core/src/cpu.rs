@@ -682,6 +682,20 @@ mod tests {
     }
 
     #[test]
+    fn test_op_fx0a_wait_for_key() {
+        let (mut cpu, mut bus) = setup();
+        let old_pc = cpu.pc;
+
+        cpu.execute(0xF10A, &mut bus);
+        assert_eq!(cpu.pc, old_pc);
+
+        bus.set_key(0xA, true);
+        cpu.execute(0xF10A, &mut bus);
+        assert_eq!(cpu.pc, old_pc + 2);
+        assert_eq!(cpu.v_registers[0x1], 0xA);
+    }
+
+    #[test]
     fn test_op_fx15_load_delay_from_reg() {
         let (mut cpu, mut bus) = setup();
         cpu.v_registers[0x1] = 0xFF;
