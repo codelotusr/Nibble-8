@@ -221,6 +221,9 @@ impl Cpu {
             Instruction::LoadRegFromDelay(x) => {
                 self.v_registers[x as usize] = self.delay_timer;
             }
+            Instruction::LoadDelayFromReg(x) => {
+                self.delay_timer = self.v_registers[x as usize];
+            }
             Instruction::AddIndex(x) => {
                 self.i += self.v_registers[x as usize] as u16;
             }
