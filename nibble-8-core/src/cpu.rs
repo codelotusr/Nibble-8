@@ -221,6 +221,9 @@ impl Cpu {
             Instruction::LoadRegFromDelay(x) => {
                 self.v_registers[x as usize] = self.delay_timer;
             }
+            Instruction::AddIndex(x) => {
+                self.i += self.v_registers[x as usize] as u16;
+            }
             Instruction::Bcd(x) => {
                 let hundreds = self.v_registers[x as usize] / 100;
                 let tens = (self.v_registers[x as usize] / 10) % 10;
