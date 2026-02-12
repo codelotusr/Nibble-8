@@ -2,7 +2,7 @@ use crate::{
     Bus,
     decoder::decode,
     instruction::Instruction,
-    memory::{ROM_START, SCREEN_HEIGHT, SCREEN_WIDTH},
+    memory::{KEY_COUNT, ROM_START, SCREEN_HEIGHT, SCREEN_WIDTH},
 };
 use rand::{self, Rng};
 
@@ -220,6 +220,21 @@ impl Cpu {
             }
             Instruction::LoadRegFromDelay(x) => {
                 self.v_registers[x as usize] = self.delay_timer;
+            }
+            Instruction::WaitForKey(x) => {
+                let mut key_pressed = None;
+
+                for key in 0..KEY_COUNT {
+                    if bus.is_key_pressed(key as u8) {
+                        key_pressed = Some(key as u8);
+                        break;
+                    }
+                }
+
+                match key_pressed {
+                    Some(k) => self.v_registers[x as usize] = k,
+                    None => self.pc -= 2,
+                }
             }
             Instruction::LoadDelayFromReg(x) => {
                 self.delay_timer = self.v_registers[x as usize];
@@ -686,11 +701,16 @@ mod tests {
         let (mut cpu, mut bus) = setup();
         let old_pc = cpu.pc;
 
-        cpu.execute(0xF10A, &mut bus);
+        bus.memory[cpu.pc as usize] = 0xF1;
+        bus.memory[cpu.pc as usize + 1] = 0x0A;
+
+        let opcode = cpu.fetch(&bus);
+        cpu.execute(opcode, &mut bus);
         assert_eq!(cpu.pc, old_pc);
 
         bus.set_key(0xA, true);
-        cpu.execute(0xF10A, &mut bus);
+        let opcode = cpu.fetch(&bus);
+        cpu.execute(opcode, &mut bus);
         assert_eq!(cpu.pc, old_pc + 2);
         assert_eq!(cpu.v_registers[0x1], 0xA);
     }
