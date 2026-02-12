@@ -665,6 +665,19 @@ mod tests {
     }
 
     #[test]
+    fn test_op_fx33_bcd() {
+        let (mut cpu, mut bus) = setup();
+        cpu.i = 0x500;
+        cpu.v_registers[0x1] = 0xFB;
+
+        cpu.execute(0xF133, &mut bus);
+
+        assert_eq!(bus.memory[cpu.i as usize], 2);
+        assert_eq!(bus.memory[cpu.i as usize + 1], 5);
+        assert_eq!(bus.memory[cpu.i as usize + 2], 1);
+    }
+
+    #[test]
     fn test_op_fx55_dump_regs() {
         let (mut cpu, mut bus) = setup();
         cpu.i = 0x500;
