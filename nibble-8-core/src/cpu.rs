@@ -620,4 +620,19 @@ mod tests {
         cpu.execute(0xE09E, &mut bus);
         assert_eq!(cpu.pc, old_pc + 2);
     }
+
+    #[test]
+    fn test_op_exa1_skip_if_not_pressed() {
+        let (mut cpu, mut bus) = setup();
+
+        let old_pc = cpu.pc;
+
+        bus.set_key(0x0, true);
+        cpu.execute(0xE0A1, &mut bus);
+        assert_eq!(cpu.pc, old_pc);
+
+        bus.set_key(0x0, false);
+        cpu.execute(0xE0A1, &mut bus);
+        assert_eq!(cpu.pc, old_pc + 2);
+    }
 }
