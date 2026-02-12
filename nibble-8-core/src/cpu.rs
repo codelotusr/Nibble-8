@@ -222,6 +222,12 @@ impl Cpu {
             Instruction::LoadRegFromDelay(x) => {
                 self.v_registers[x as usize] = self.delay_timer;
             }
+            Instruction::DumpRegs(x) => {
+                for reg_num in 0..=x {
+                    bus.memory[self.i as usize + reg_num as usize] =
+                        self.v_registers[reg_num as usize];
+                }
+            }
             _ => (),
         }
 
@@ -665,7 +671,7 @@ mod tests {
         cpu.execute(0xF555, &mut bus);
 
         for x in 0..=5 {
-            assert_eq!(cpu.v_registers[x], (x * 10) as u8);
+            assert_eq!(bus.memory[cpu.i as usize + x], (x * 10) as u8);
         }
     }
 }
