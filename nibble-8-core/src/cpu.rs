@@ -147,7 +147,6 @@ impl Cpu {
                 self.v_registers[x as usize] = self.v_registers[y as usize]
             }
             Instruction::Or(x, y) => self.v_registers[x as usize] |= self.v_registers[y as usize],
-
             Instruction::And(x, y) => self.v_registers[x as usize] &= self.v_registers[y as usize],
             Instruction::Xor(x, y) => self.v_registers[x as usize] ^= self.v_registers[y as usize],
             Instruction::AddReg(x, y) => {
@@ -226,6 +225,12 @@ impl Cpu {
                 for reg_num in 0..=x {
                     bus.memory[self.i as usize + reg_num as usize] =
                         self.v_registers[reg_num as usize];
+                }
+            }
+            Instruction::FillRegs(x) => {
+                for byte_num in 0..=x {
+                    self.v_registers[byte_num as usize] =
+                        bus.memory[self.i as usize + byte_num as usize];
                 }
             }
             _ => (),
@@ -685,7 +690,7 @@ mod tests {
             bus.memory[cpu.i as usize + index] = byte;
         }
 
-        cpu.execute(0x365, &mut bus);
+        cpu.execute(0xF365, &mut bus);
 
         assert_eq!(&cpu.v_registers[0..test_data.len()], test_data);
     }
