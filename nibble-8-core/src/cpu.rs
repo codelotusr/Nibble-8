@@ -652,4 +652,20 @@ mod tests {
         cpu.execute(0xF007, &mut bus);
         assert_eq!(cpu.v_registers[0x0], 0xFF);
     }
+
+    #[test]
+    fn test_op_fx55_dump_regs() {
+        let (mut cpu, mut bus) = setup();
+        cpu.i = 0x500;
+
+        for x in 0..=5 {
+            cpu.v_registers[x] = (x * 10) as u8;
+        }
+
+        cpu.execute(0xF555, &mut bus);
+
+        for x in 0..=5 {
+            assert_eq!(cpu.v_registers[x], (x * 10) as u8);
+        }
+    }
 }
