@@ -90,6 +90,15 @@ impl Cpu {
         }
     }
 
+    pub fn decrease_timers(&mut self) {
+        if self.delay_timer > 0 {
+            self.delay_timer -= 1;
+        }
+        if self.sound_timer > 0 {
+            self.sound_timer -= 1;
+        }
+    }
+
     pub fn fetch(&mut self, bus: &Bus) -> u16 {
         let byte1: u16 = (bus.memory[self.pc as usize] as u16) << 8;
         let byte2: u16 = bus.memory[self.pc as usize + 1] as u16;
@@ -209,12 +218,15 @@ impl Cpu {
                 should_redraw = true;
             }
             Instruction::SkipIfPressed(x) => {
-                if bus.is_key_pressed(x) {
+                let key = self.v_registers[x as usize] & 0x0F;
+                if bus.is_key_pressed(key) {
                     self.pc += 2;
                 }
             }
+
             Instruction::SkipIfNotPressed(x) => {
-                if !bus.is_key_pressed(x) {
+                let key = self.v_registers[x as usize] & 0x0F;
+                if !bus.is_key_pressed(key) {
                     self.pc += 2;
                 }
             }
