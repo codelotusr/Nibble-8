@@ -7,12 +7,25 @@ use sdl2::event::Event;
 use sdl2::keyboard::Scancode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use std::fs::read;
+use std::fs::{self, read};
+use std::io;
+use std::path::PathBuf;
 use std::time::Duration;
 
-pub fn main() {
+#[derive(PartialEq)]
+pub enum EmulatorState {
+    Menu,
+    Playing,
+}
+
+pub fn main() -> io::Result<()> {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
+    let ttf_context = sdl2::ttf::init().map_err(io::Error::other)?;
+    let font_path = "fonts/PressStart2P-Regular.ttf";
+    let menu_font = ttf_context
+        .load_font(font_path, 16)
+        .expect("Failed to load font. Check if path is correct!");
 
     let window = video_subsystem
         .window("Nibble-8", 640, 320)
@@ -24,8 +37,8 @@ pub fn main() {
 
     let mut cpu = Cpu::new(Box::new(ThreadRngSource::new()));
     let mut bus = Bus::new();
-    let rom_vec = read("./roms/mySnake.ch8").expect("Failed to read ROM file");
-    bus.load_rom(&rom_vec).unwrap();
+
+    let mut current_state = EmulatorState::Menu;
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -62,35 +75,46 @@ pub fn main() {
             }
         }
 
-        let mut frame_needs_redraw = false;
+        if current_state == EmulatorState::Menu {
+            let roms: Vec<PathBuf> = fs::read_dir("roms")?
+                .map(|res| res.map(|e| e.path()))
+                .collect::<Result<Vec<_>, io::Error>>()?;
 
-        for _ in 0..10 {
-            let opcode = cpu.fetch(&bus);
-            if cpu.execute(opcode, &mut bus) {
-                frame_needs_redraw = true;
-            }
-        }
+            let rom_vec = read("./roms/mySnake.ch8").expect("Failed to read ROM file");
+            bus.load_rom(&rom_vec).unwrap();
+            current_state = EmulatorState::Playing;
+        } else if current_state == EmulatorState::Playing {
+            let mut frame_needs_redraw = false;
 
-        cpu.decrease_timers();
-
-        if frame_needs_redraw {
-            canvas.set_draw_color(Color::RGB(0, 0, 0));
-            canvas.clear();
-            canvas.set_draw_color(Color::RGB(255, 255, 255));
-
-            for y in 0..SCREEN_HEIGHT {
-                for x in 0..SCREEN_WIDTH {
-                    if bus.get_pixel(x, y) == 1 {
-                        let rect = Rect::new((x * 10) as i32, (y * 10) as i32, 10, 10);
-                        canvas.fill_rect(rect).unwrap();
-                    }
+            for _ in 0..10 {
+                let opcode = cpu.fetch(&bus);
+                if cpu.execute(opcode, &mut bus) {
+                    frame_needs_redraw = true;
                 }
             }
-            canvas.present();
-        }
 
+            cpu.decrease_timers();
+
+            if frame_needs_redraw {
+                canvas.set_draw_color(Color::RGB(0, 0, 0));
+                canvas.clear();
+                canvas.set_draw_color(Color::RGB(255, 255, 255));
+
+                for y in 0..SCREEN_HEIGHT {
+                    for x in 0..SCREEN_WIDTH {
+                        if bus.get_pixel(x, y) == 1 {
+                            let rect = Rect::new((x * 10) as i32, (y * 10) as i32, 10, 10);
+                            canvas.fill_rect(rect).unwrap();
+                        }
+                    }
+                }
+                canvas.present();
+            }
+        }
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
+
+    Ok(())
 }
 
 fn map_keycode_to_chip8(k: Scancode) -> Option<u8> {
@@ -118,3 +142,5 @@ fn map_keycode_to_chip8(k: Scancode) -> Option<u8> {
         _ => return None,
     })
 }
+
+fn reset() {}

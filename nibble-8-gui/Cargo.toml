@@ -5,4 +5,7 @@ edition = "2024"
 
 [dependencies]
 nibble-8-core = { path = "../nibble-8-core/" }
-sdl2 = "0.38"
+[dependencies.sdl2]
+version = "0.38"
+default-features = false
+features = ["ttf"]
