@@ -28,17 +28,39 @@ pub fn main() -> io::Result<()> {
         .expect("Failed to load font. Check if path is correct!");
 
     let window = video_subsystem
-        .window("Nibble-8", 640, 320)
+        .window(
+            "Nibble-8",
+            SCREEN_WIDTH as u32 * 10,
+            SCREEN_HEIGHT as u32 * 10,
+        )
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
+    let texture_creator = canvas.texture_creator();
 
     let mut cpu = Cpu::new(Box::new(ThreadRngSource::new()));
     let mut bus = Bus::new();
 
     let mut current_state = EmulatorState::Menu;
+    let roms: Vec<PathBuf> = fs::read_dir("roms")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+    let surface = menu_font
+        .render("Nibble-8")
+        .blended(Color::RGB(255, 255, 255))
+        .map_err(io::Error::other)?;
+    let texture = texture_creator
+        .create_texture_from_surface(&surface)
+        .map_err(io::Error::other)?;
+    let target_query = texture.query();
+    let target_rect = Rect::new(
+        (SCREEN_WIDTH as i32 * 10) / 2 - (target_query.width / 2) as i32,
+        (SCREEN_HEIGHT as i32 * 10) / 2 - (target_query.width / 2) as i32,
+        target_query.width,
+        target_query.height,
+    );
 
     canvas.set_draw_color(Color::RGB(0, 255, 255));
     canvas.clear();
@@ -76,13 +98,17 @@ pub fn main() -> io::Result<()> {
         }
 
         if current_state == EmulatorState::Menu {
-            let roms: Vec<PathBuf> = fs::read_dir("roms")?
-                .map(|res| res.map(|e| e.path()))
-                .collect::<Result<Vec<_>, io::Error>>()?;
+            // let rom_vec = read("./roms/mySnake.ch8").expect("Failed to read ROM file");
+            // bus.load_rom(&rom_vec).unwrap();
+            // current_state = EmulatorState::Playing;
+            canvas.set_draw_color(Color::RGB(0, 0, 0));
+            canvas.clear();
 
-            let rom_vec = read("./roms/mySnake.ch8").expect("Failed to read ROM file");
-            bus.load_rom(&rom_vec).unwrap();
-            current_state = EmulatorState::Playing;
+            canvas
+                .copy(&texture, None, Some(target_rect))
+                .map_err(io::Error::other)?;
+
+            canvas.present();
         } else if current_state == EmulatorState::Playing {
             let mut frame_needs_redraw = false;
 
